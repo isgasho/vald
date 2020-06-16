@@ -24,8 +24,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-type sdOptions = stackdriver.Options
-
 type Stackdriver interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context)
