@@ -20,8 +20,11 @@ package stackdriver
 import (
 	"context"
 
+	traceapi "cloud.google.com/go/trace/apiv2"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 type Stackdriver interface {
@@ -54,6 +57,22 @@ func New(opts ...Option) (s Stackdriver, err error) {
 
 func (e *exporter) Start(ctx context.Context) (err error) {
 	e.Options.Context = ctx
+
+	// TODO: debugging use
+	creds, err := google.FindDefaultCredentials(ctx, traceapi.DefaultAuthScopes()...)
+	if err != nil {
+		return err
+	}
+
+	err = WithMonitoringClientOptions(option.WithCredentials(creds))(e)
+	if err != nil {
+		return err
+	}
+
+	err = WithTraceClientOptions(option.WithCredentials(creds))(e)
+	if err != nil {
+		return err
+	}
 
 	e.exporter, err = stackdriver.NewExporter(*e.Options)
 	if err != nil {
